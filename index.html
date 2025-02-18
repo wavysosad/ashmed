@@ -142,6 +142,65 @@
 				0% { text-shadow: 0 0 10px rgba(169,130,255,0.5); }
 				100% { text-shadow: 0 0 20px rgba(169,130,255,0.8); }
 			}
+
+			/* CSS cho thanh âm lượng */
+			.volume-control {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 10px;
+				margin-top: 10px;
+			}
+
+			#volume-slider {
+				-webkit-appearance: none;
+				appearance: none;
+				width: 100px;
+				height: 3px;
+				background: rgba(255, 255, 255, 0.3);
+				border-radius: 2px;
+				outline: none;
+				cursor: pointer;
+			}
+
+			#volume-slider::-webkit-slider-thumb {
+				-webkit-appearance: none;
+				appearance: none;
+				width: 12px;
+				height: 12px;
+				background: #f2f2f2;
+				border-radius: 50%;
+				cursor: pointer;
+				transition: background 0.3s ease;
+			}
+
+			#volume-slider::-moz-range-thumb {
+				width: 12px;
+				height: 12px;
+				background: #f2f2f2;
+				border-radius: 50%;
+				cursor: pointer;
+				transition: background 0.3s ease;
+			}
+
+			#volume-slider:hover::-webkit-slider-thumb {
+				background: #ffff66;
+			}
+
+			#volume-slider:hover::-moz-range-thumb {
+				background: #ffff66;
+			}
+
+			#volume-icon {
+				font-size: 1.2em;
+				color: #fff;
+				cursor: pointer;
+				transition: color 0.3s ease;
+			}
+
+			#volume-icon:hover {
+				color: #ffff66;
+			}
 		</style>
 	</head>
 	<body class="is-preload">
@@ -189,6 +248,12 @@
 								<div class="time-display">
 									<span id="current-time">0:00</span>
 									<span id="duration">0:00</span>
+								</div>
+
+								<!-- Thanh điều chỉnh âm lượng -->
+								<div class="volume-control">
+									<a href="javascript:void(0);" class="icon solid fa-volume-up" id="volume-icon" onclick="toggleMute()"></a>
+									<input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1">
 								</div>
 							</div>
 						</div>
@@ -356,6 +421,40 @@
 			const durationElement = document.getElementById('duration');
 			const playButton = document.getElementById('play-button');
 
+			// Lấy các phần tử liên quan đến âm lượng
+			const volumeSlider = document.getElementById('volume-slider');
+			const volumeIcon = document.getElementById('volume-icon');
+
+			// Thiết lập âm lượng ban đầu
+			audio.volume = volumeSlider.value;
+
+			// Cập nhật âm lượng khi thanh trượt thay đổi
+			volumeSlider.addEventListener('input', () => {
+				audio.volume = volumeSlider.value;
+				updateVolumeIcon();
+			});
+
+			// Hàm cập nhật biểu tượng âm lượng
+			function updateVolumeIcon() {
+				if (audio.volume === 0 || audio.muted) {
+					volumeIcon.classList.replace('fa-volume-up', 'fa-volume-mute');
+				} else if (audio.volume < 0.5) {
+					volumeIcon.classList.replace('fa-volume-mute', 'fa-volume-down');
+				} else {
+					volumeIcon.classList.replace('fa-volume-down', 'fa-volume-up');
+				}
+			}
+
+			// Hàm bật/tắt tắt tiếng
+			function toggleMute() {
+				audio.muted = !audio.muted;
+				updateVolumeIcon();
+				volumeSlider.value = audio.muted ? 0 : audio.volume;
+			}
+
+			// Cập nhật biểu tượng âm lượng khi tải trang
+			updateVolumeIcon();
+
 			// Hàm phát nhạc (chỉ load khi chuyển bài mới)
 			function playMusic() {
 				if (isNewTrack) {
@@ -393,7 +492,6 @@
 				currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
 				playMusic();
 			}
-
 
 			// Hàm chuyển bài trước đó
 			function previousTrack() {
